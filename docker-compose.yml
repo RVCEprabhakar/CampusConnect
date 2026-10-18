@@ -1,0 +1,38 @@
+services:
+  campusconnect-app:
+    image: prabhakarpatil1234/campusconnect:latest
+    container_name: campusconnect-app
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: "8081"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/${DB_NAME}"
+      SPRING_DATASOURCE_USERNAME: "${DB_USER}"
+      SPRING_DATASOURCE_PASSWORD: "${DB_PASSWORD}"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8
+    container_name: campusconnect-mysql
+    environment:
+      MYSQL_DATABASE: "${DB_NAME}"
+      MYSQL_USER: "${DB_USER}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+    volumes:
+      - campusconnect_data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'mysqladmin ping -h localhost -u root -p"$${MYSQL_ROOT_PASSWORD}" || exit 1'
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  campusconnect_data:
